@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Command that creates a local playlist out of a YouTube playlist and plays it with VLC, simply change ?list= part till the " with your prefered list id found on YouTube
+lynx -dump "https://www.youtube.com/playlist?list=dwPLJqCwEpiz1GTK7KeSW7Ud9aKXEFlOsqI8" | egrep -o "http.*watch.{14}" | perl -ne 'print unless $seen{$_}++' | vlc -
