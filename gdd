@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# First replace the uploadFolder string underneath with your prefered upload folder id found on Google Drive.
+# Navigate to Google Drive on your browser, go to your favorite folder and copy paste the id found after /folders/
+uploadFolder="QWJHaghtNEawcebjlacGhuMmxNDWk"
+ 
+#Any key to continue command
+anyKeyContinue () { 
+		read -n1 -r -p $'> Press any key to continue...'
+}
+
+# Search for file in Google Drive and download it
+
+# Function that performs the search on Google Drive
+gdriveFind() {
+	gdrive-linux-x64 list -q "name contains '$name' and trashed = false"
+	return
+}
+
+# Function that performs file download
+gdriveDownload () { 
+	# Set the prompt for the select command
+	PS3="> Select a file number to download or enter any letter to return home: "
+	# Perform the search and display the results
+	var=$(gdriveFind "$name")
+	echo "$var"
+	# Create a list of file identifiers to display
+	fileList=$(echo "$var" | awk 'NR>1 {print $1;}')
+	# Create a numbered list of file identifiers to choose the one to download
+	select fileName in $fileList; do 
+		if [ -n "$fileName" ]; then
+			gdrive-linux-x64 download --path ~/Downloads/ ${fileName}
+		anyKeyContinue
+		fi
+	break
+	done
+}
+
+gdriveUpload () { # Function that performs file upload
+	gdrive-linux-x64 upload -p $uploadFolder "$name"
+	anyKeyContinue
+	return
+}
+
+# Loop from this part onward
+while true; do
+# Give the file name to act upon
+clear
+read -p $'\n> Give file name of interest (leave blank to exit) : > \n> ' name;
+if [ -z "$name" ]; then
+		printf "> No file name given, exiting..\n"
+		exit
+	else
+# What action should be performed with the name ?  
+read -p $'\n> Do you want to (s)earch, (d)ownload, (u)load the file or (q)uit ?\n> ' answer;
+fi
+case "$answer" in
+   q|Q)	printf "\n> Gdrive helper exiting"
+		break 
+		;;
+   s|S)	var=$(gdriveFind "$name")
+		echo "$var"
+		anyKeyContinue
+		;;
+   d|D)	gdriveDownload
+		;;
+   u|U) gdriveUpload
+		;;
+	 *)	printf "> Please choose either s, d, u or q"
+		sleep 3 
+		;;
+esac
+done
+echo -e "\nBye!"
